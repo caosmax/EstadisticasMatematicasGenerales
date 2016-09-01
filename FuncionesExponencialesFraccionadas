@@ -1,0 +1,490 @@
+
+**food
+use FoodNew.dta, clear
+keep if impactparameter=="FoodAvailXAgg"
+#delimit;
+drop AllofertaNoCC Alloferta importCropsBid importNocc importallGCM importall 
+Importaciones ALLdemand ShareAtRiskXagg ShareImport ShareExpor ALLsupply 
+PopRiskhunger FoodDisp NetTrade Exportaciones parameter productiontype;
+#delimit cr
+gen f= val if  impactparameter=="FoodAvailXAgg"
+drop val impactparameter
+save "FAva.dta", replace
+
+**income
+use FoodNew.dta, clear
+keep if impactparameter=="GDPXAgg -- Income"
+#delimit;
+drop AllofertaNoCC Alloferta importCropsBid importNocc importallGCM importall 
+Importaciones ALLdemand ShareAtRiskXagg ShareImport ShareExpor ALLsupply 
+PopRiskhunger FoodDisp NetTrade Exportaciones parameter productiontype;
+#delimit cr
+gen i= val if  impactparameter=="GDPXAgg -- Income"
+drop val impactparameter
+save "income.dta", replace
+
+***Calorias
+use FoodNew.dta, clear
+keep if impactparameter=="PerCapKCalXAgg"
+#delimit;
+drop AllofertaNoCC Alloferta importCropsBid importNocc importallGCM importall 
+Importaciones ALLdemand ShareAtRiskXagg ShareImport ShareExpor ALLsupply 
+PopRiskhunger FoodDisp NetTrade Exportaciones parameter productiontype;
+#delimit cr
+gen ka= val if  impactparameter=="PerCapKCalXAgg"
+drop val impactparameter
+save "calper.dta", replace
+
+*** Pob in risk of hunger
+use FoodNew.dta, clear
+keep if impactparameter=="PopulationAtRiskXagg - Pop at Risk of Hunger"
+#delimit;
+drop AllofertaNoCC Alloferta importCropsBid importNocc importallGCM importall 
+Importaciones ALLdemand ShareAtRiskXagg ShareImport ShareExpor ALLsupply 
+PopRiskhunger FoodDisp NetTrade Exportaciones parameter productiontype;
+#delimit cr
+gen ph= val if  impactparameter=="PopulationAtRiskXagg - Pop at Risk of Hunger"
+drop val impactparameter
+save "pobrisck.dta", replace
+
+*** import
+use FoodNew.dta, clear
+keep if impactparameter=="QMXAgg -- Import"
+#delimit;
+drop AllofertaNoCC Alloferta importCropsBid importNocc importallGCM importall 
+Importaciones ALLdemand ShareAtRiskXagg ShareImport ShareExpor ALLsupply 
+PopRiskhunger FoodDisp NetTrade Exportaciones parameter productiontype;
+#delimit cr
+gen m= val if  impactparameter=="QMXAgg -- Import"
+drop val impactparameter
+save "mimport.dta", replace
+
+
+***Share at risk 
+use FoodNew.dta, clear
+keep if impactparameter=="ShareAtRiskXagg -- Share at Risk of Hunger"
+#delimit;
+drop AllofertaNoCC Alloferta importCropsBid importNocc importallGCM importall 
+Importaciones ALLdemand ShareAtRiskXagg ShareImport ShareExpor ALLsupply 
+PopRiskhunger FoodDisp NetTrade Exportaciones parameter productiontype;
+#delimit cr
+gen s= val if impactparameter=="ShareAtRiskXagg -- Share at Risk of Hunger"
+drop val impactparameter
+save "sharerisck.dta", replace
+
+
+***Share at demanda
+use FoodNew.dta, clear
+keep if impactparameter=="QFXAgg -- Household Demand"
+#delimit;
+drop AllofertaNoCC Alloferta importCropsBid importNocc importallGCM importall 
+Importaciones ALLdemand ShareAtRiskXagg ShareImport ShareExpor ALLsupply 
+PopRiskhunger FoodDisp NetTrade Exportaciones parameter productiontype;
+#delimit cr
+gen qd= val if  impactparameter=="QFXAgg -- Household Demand"
+drop val impactparameter
+save "demandHouse.dta", replace
+
+
+***xport
+use FoodNew.dta, clear
+keep if impactparameter=="QEXAgg -- Export"
+#delimit;
+drop AllofertaNoCC Alloferta importCropsBid importNocc importallGCM importall 
+Importaciones ALLdemand ShareAtRiskXagg ShareImport ShareExpor ALLsupply 
+PopRiskhunger FoodDisp NetTrade Exportaciones parameter productiontype;
+#delimit cr
+gen x= val if  impactparameter=="QEXAgg -- Export"
+drop val impactparameter
+save "xexport.dta", replace
+
+***supply
+use FoodNew.dta, clear
+keep if impactparameter=="QSupXAgg -- Commodity Supply"
+#delimit;
+drop AllofertaNoCC Alloferta importCropsBid importNocc importallGCM importall 
+Importaciones ALLdemand ShareAtRiskXagg ShareImport ShareExpor ALLsupply 
+PopRiskhunger FoodDisp NetTrade Exportaciones parameter productiontype;
+#delimit cr
+gen qo= val if  impactparameter=="QSupXAgg -- Commodity Supply"
+drop val impactparameter
+save "supply.dta", replace
+
+****************************************************
+*** Datos agregados
+***merce
+cd "C:\Users\CEGONZALEZ\Desktop\BID\BID\newBID\ImpactResults"
+
+use  income.dta, clear 
+merge m:m region year scenario using calper.dta 
+drop _merge 
+save "databaseAgre.dta", replace
+
+use databaseAgre.dta, clear
+merge m:m region year scenario using pobrisck.dta
+drop _merge 
+save "databaseAgre.dta", replace
+
+use databaseAgre.dta, clear
+merge m:m region year scenario using sharerisck.dta
+drop _merge 
+save"databaseAgre.dta", replace
+
+edit 
+
+use databaseAgre.dta,clear
+
+***** datos por cultivo
+use FAva.dta, clear
+merge m:m region year scenario commodity using mimport.dta 
+duplicates report
+drop _merge 
+save "databaseCrops.dta", replace
+
+use databaseCrops.dta, clear
+merge m:m region year scenario commodity using xexport.dta
+drop _merge  
+save "databaseCrops.dta", replace
+
+use databaseCrops.dta, clear
+merge m:m region year scenario commodity using demandHouse.dta 
+drop _merge 
+save "databaseCrops.dta", replace
+
+use databaseCrops.dta, clear
+merge m:m region year scenario commodity using supply.dta 
+drop _merge 
+save "databaseCrops.dta", replace
+
+
+
+edit
+******************** creando variales GCM
+global suffix "_n"
+foreach w  in f m qd x qo {
+egen `w'_n= mean(`w') if gcm!=1, by (commodity region year )
+save "databaseCrops.dta", replace
+}
+end 
+
+
+******************** creando variales NoCC
+global suffix "_nNoCC"
+foreach w  in f m qd x qo {
+egen `w'_nNocc= mean(`w') if gcm==1, by (commodity region year )
+save "databaseCrops.dta", replace
+}
+end
+
+use databaseCrops.dta, clear
+***************************************************
+
+collapse (sum)f_n m_n qd_n x_n qo_n f_nNocc m_nNocc qd_nNocc x_nNocc qo_nNocc, by(region year scenario )
+save "dbaseCrops.dta",replace
+
+***************************************************
+***merge
+use dbaseCrops.dta,clear
+use databaseAgre.dta,clear
+merge m:m region year scenario using dbaseCrops.dta 
+
+save "bdAll.dta", replace 
+use bdAll.dta, clear
+
+scatter i m_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050)
+scatter f_n m_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & zona!=.
+
+gen li=ln(i)
+gen lka=ln(ka)
+#delimit;
+scatter lka li if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050)& zona!=. & zona!=1 , 
+mcolor(blue) msymbol(square hollow) mlabel(zona) ;
+#delimit cr
+
+
+#delimit;
+scatter lka li if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & zona!=. & zona!=1, 
+mcolor(blue) msymbol(square hollow) scheme(s1mono) xsize(6.5) ysize(7) 
+ylabel(#10, angle(45) labsize(small)) 		
+xlabel(#10, angle(45) labsize(small));
+#delimit cr
+
+#delimit;
+scatter s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & zona!=. & zona!=1
+& f_n!=0, 
+mcolor(blue) msymbol(square) scheme(s1mono) xsize(6.5) ysize(7) 
+ylabel(#10, angle(45) labsize(small)) 		
+xlabel(#10, angle(45) labsize(small))
+ytitle("{it:Share at Risk of Hunger}") xtitle("{it:FoodAvailXAgg}");
+#delimit cr
+graph save Sandfood.gph, replace
+graph export Sandfood.png, width(4000) replace 
+
+
+
+#delimit;
+scatter s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& region!="LAC" & region!="EAP" & region!="EUR" & region!="FSU"  & region!="MEN"
+& region!="SAS" & region!="NAM" & region!="SSA" & region!="WLD" & subregionBID==.,
+mcolor(blue) msymbol(oh) scheme(s1mono) xsize(6.5) ysize(7) 
+ylabel(#10, angle(45) labsize(small)) 		
+xlabel(#15, angle(45) labsize(small)) note("{it:Food availability per capita (kg per person)}")
+ytitle("{it:Share at Risk of Hunger}") xtitle("{it:FoodAvailXAgg}") legend(label(1 "World" ))
+||scatter s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23),
+mcolor(red) msymbol(sh) legend(label(2 "LAC"))|| 
+|| fpfit s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23), 
+lpattern(longdash) lwidth(medium)lcolor(lime) legend(label(3 "line ALC"))|| 
+|| fpfit  s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& spatial!=1 & spatial!=25 & spatial!=111 & spatia!=115 & spatial!=123 & spatial!=167 & spatial!=93
+& spatial!=68 & spatial!=55 , lcolor(black) lpattern(longdash) lwidth(medium) 
+legend(label(4 "line World")size(vsmall)) ||;
+#delimit cr 
+graph save Sandfood.gph, replace
+graph export Sandfood.png, width(4000) replace 
+
+
+**** sin ajuste
+
+#delimit;
+scatter s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& region!="LAC" & region!="EAP" & region!="EUR" & region!="FSU"  & region!="MEN"
+& region!="SAS" & region!="NAM" & region!="SSA" & region!="WLD" & subregionBID==.,
+mcolor(blue) msymbol(oh) scheme(s1mono) xsize(6.5) ysize(7) 
+ylabel(#10, angle(45) labsize(small)) 		
+xlabel(#15, angle(45) labsize(small)) note("{it:Food availability per capita (kg per person)}")
+ytitle("{it:Share at Risk of Hunger}") xtitle("{it:FoodAvailXAgg}") legend(label(1 "World" ))
+||scatter s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23),
+mcolor(red) msymbol(sh) legend(label(2 "LAC"));
+#delimit cr
+graph save Sandfood2.gph, replace
+graph export Sandfood2.png, width(4000) replace 
+
+
+& region!="LAC" & region!="EAP" & region!="EUR" & region!="FSU" & region!="EAP" & region!="MEN"
+& region!="SAS" & region!="NAM" & region!="SSA" & region!="WLD" & subregionBID==, lcolor(orange) 
+legend(label(4 "line World"))||;
+#delimit cr 
+
+
+**********************************************
+
+***Merge 
+use "bdAll.dta", clear 
+drop _merge
+
+///use MapCoordinates.dta, clear
+///merge m:m region using MapCoordinates.dta 
+
+***gen indicator
+***declarar datos de panel 
+
+list, noobs sepby(spatial)
+by spatial: egen base= anycount((year==2005)*f_n) 
+by spatial: gen base= anycount(f_n) if year==2005
+
+
+******************************************
+
+**** significancia estadistica función exponencial fraccional
+#delimit;
+twoway  fpfit s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& spatial!=1 & spatial!=25 & spatial!=111 & spatia!=115 & spatial!=123 & spatial!=167 & spatial!=93
+& spatial!=68 & spatial!=55 , lcolor(black) lpattern(longdash) lwidth(medium) 
+legend(label(1 "line World")size(vsmall)) ||
+|| fpfit s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23), 
+lcolor(lime) legend(label(2 "line ALC")) xtitle("{it:Food availability per capita}") 
+ytitle("{it:Share at Risk of Hunger}") scheme(s1mono) ||;
+#delimit cr 
+graph save fpfit.gph, replace
+graph export fpfit.png, width(4000) replace 
+
+
+************************************************************
+***** function fractional polynomial 
+****CI 95% confianza
+
+***World
+
+#delimit;
+twoway fpfitci s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& spatial!=1 & spatial!=25 & spatial!=111 & spatia!=115 & spatial!=123 & spatial!=167 & spatial!=93
+& spatial!=68 & spatial!=55, lcolor(blue) ||
+fpfitci s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23),lcolor(red)
+legend(label(2 "line World") label(3 "95% CI") label(4 "line ALC")) xtitle("{it:Food availability per capita}") 
+ytitle("{it:Share at Risk of Hunger}") scheme(s1mono)||;
+#delimit cr
+graph save CI95perce.gph, replace
+graph export CI95perce.png, width(4000) replace 
+
+
+twoway  fpfitci s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23),
+ legend(label(3 "line ALC")) xtitle("{it:Food availability per capita}") 
+ytitle("{it:Share at Risk of Hunger}") scheme(s1mono);
+#delimit cr
+
+
+
+***ALC and World
+****grafico
+#delimit;
+twoway fpfit s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23), legend(label(1 "line ALC"))
+lcolor(blue)||
+fpfit s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& spatial!=1 & spatial!=25 & spatial!=111 & spatia!=115 & spatial!=123 & spatial!=167 & spatial!=93
+& spatial!=68 & spatial!=55 , 
+lcolor(black) lpattern(longdash) lwidth(medium) legend(label(2 "line WORLD")) xtitle("{it:Food availability per capita}") 
+ytitle("{it:Share at Risk of Hunger}") scheme(s1mono)||;
+#delimit cr
+graph save linefit.gph, replace
+graph export linefit.png, width(4000) replace 
+
+
+// qfit cuadratica
+// fpfit fraccional polinomica
+***ALC
+****grafico
+#delimit;
+twoway   fpfitci  s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23),
+ legend(label(3 "line ALC")) xtitle("{it:Food availability per capita}") 
+ytitle("{it:Share at Risk of Hunger}") scheme(s1mono);
+#delimit cr
+
+***regresion 
+#delimit;
+fp <f_n> : regress s <f_n> f_n  if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23) ;
+#delimit cr
+fp plot, residuals(none) xtitle("Food Avalability") xlabel(#10) scheme(s1mono) ylabel(#10)
+graph save pfNormal.gph, replace
+graph export pfNormal.png, width(4000) replace 
+
+
+
+**********************************************************************
+** generar una  transformarla
+
+** variable scalada
+gen fw= f_n/1000
+#delimit;
+fp <fw> : regress s <fw> fw  if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23) ;
+#delimit cr
+fp plot, residuals(none) xtitle("Food Avalability") xlabel(#10) scheme(s1mono) ylabel(#10)
+graph save pfNormal.gph, replace
+graph export pfNormal.png, width(4000) replace 
+
+
+*** mejor modelo para los datos
+#delimit;
+fp <fw>, fp(1 -2 ) replace: regress s <fw> fw  if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23);
+#delimit cr
+
+*** variable sin scalar
+#delimit;
+fp <f_n> : regress s <f_n> f_n  if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23) ;
+# delimit cr
+
+
+#delimit 
+fp plot, residuals(none) xtitle("Food Avalability") xlabel(#10) scheme(s1mono) ylabel(#10)
+legend(label(1 "95% CI") label(2 "LAC Prediction")); 
+#delimit cr
+graph save GraphALCfp.gph, replace
+graph export GraphALCfp.png, width(4000) replace 
+
+#delimit;
+fp <f_n>, fp(1 -2 ) replace: regress s <f_n> f_n  if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& inlist(zona,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23);
+#delimit cr
+
+
+
+#delimit;
+fp plot, residuals(none) legend(label(3 "line ALC")lwidth(medium)) 
+xtitle("{it:Food availability per capita}") scheme(s1mono)
+legend(on) xtitle("{it:Food availability per capita}");
+#delimit cr
+graph save betterPower.gph, replace
+graph export betterPower.png, width(4000) replace 
+
+
+*************************************************************************
+***World
+
+#delimit;
+twoway   fpfit  s f_n if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& spatial!=1 & spatial!=25 & spatial!=111 & spatia!=115 & spatial!=123 & spatial!=167 & spatial!=93
+& spatial!=68 & spatial!=55,
+ legend(label(2 "line World")) xtitle("{it:Food availability per capita}") 
+ytitle("{it:Share at Risk of Hunger}") scheme(s1mono);
+#delimit cr
+
+****grafico
+//fpfitci
+
+#delimit;
+scatter s f_n  if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& spatial!=1 & spatial!=25 & spatial!=111 & spatia!=115 & spatial!=123 & spatial!=167 & spatial!=93
+& spatial!=68 & spatial!=55;
+#delimit;
+******regresion polynomial 
+#delimit;
+fp <f_n>: regress s <f_n> f_n  if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& spatial!=1 & spatial!=25 & spatial!=111 & spatia!=115 & spatial!=123 & spatial!=167 & spatial!=93
+& spatial!=68 & spatial!=55;
+#delimit cr
+fp plot, residuals(none) xtitle("Food Avalability")
+
+#delimit;
+fp <f_n>, fp(1 2) replace: regress s <f_n> f_n  if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& spatial!=1 & spatial!=25 & spatial!=111 & spatia!=115 & spatial!=123 & spatial!=167 & spatial!=93
+& spatial!=68 & spatial!=55;
+#delimit cr
+
+#delimit;
+fp plot, residuals(none) xtitle("Food Avalability") xlabel(#10) scheme(s1mono) ylabel(#10)
+legend(label(1 "95% CI") label(2 "World Prediction")); 
+#delimit cr;
+graph save betterPowerWorld.gph, replace
+graph export betterPowerWorld.png, width(4000) replace 
+
+gr combine  GraphALCfp.gph betterPowerWorld.gph, xsize(8)
+graph save combineFd.gph, replace
+graph export combineFd.png, width(4000) replace 
+
+
+
+
+#delimit;
+fp <f_n>, fp(-2) replace: regress s  <f_n> f_n  if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& spatial!=1 & spatial!=25 & spatial!=111 & spatia!=115 & spatial!=123 & spatial!=167 & spatial!=93
+& spatial!=68 & spatial!=55;
+#delimit cr
+fp plot, residuals(none) xtitle("Food Avalability")
+graph save fpPlot.gph, replace
+graph export rediualsReggPolyWorld.png, width(4000) replace 
+
+
+***peso -2
+#delimit;
+fp <f_n>, fp(-2) replace: regress s  <f_n> f_n  if inlist(year, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050) & f_n!=0
+& spatial!=1 & spatial!=25 & spatial!=111 & spatia!=115 & spatial!=123 & spatial!=167 & spatial!=93
+& spatial!=68 & spatial!=55;
+#delimit cr
+fp plot, residuals(none) xtitle("Food Avalability")
+graph save fpPlot.gph, replace
+graph export rediualsReggPolyWorld.png, width(4000) replace 
+
+fp plot, residuals(none) xtitle("Food Avalability")
+graph save rediualsReggPolyWorld.gph, replace
+graph export rediualsReggPolyWorld.png, width(4000) replace 
